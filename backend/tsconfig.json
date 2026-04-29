@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "jsx": "react",
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -14,8 +13,9 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "declaration": false,
-    "removeComments": true
+    "removeComments": true,
+    "types": ["node"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.tsx", "**/*.jsx"]
 }
