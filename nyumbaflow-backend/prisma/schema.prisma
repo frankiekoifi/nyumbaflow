@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  LANDLORD
+  TENANT
+}
+
+enum HouseType {
+  APARTMENT
+  BEDSITTER
+  SINGLE
+  DOUBLE
+  STUDIO
+}
+
+enum HouseStatus {
+  OCCUPIED
+  VACANT
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  OVERDUE
+}
+
+enum PaymentMethod {
+  MPESA
+  BANK
+  CASH
+}
+
+enum ComplaintCategory {
+  PLUMBING
+  ELECTRICAL
+  STRUCTURAL
+  PEST
+  SECURITY
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum ComplaintPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum NoticeType {
+  GENERAL
+  RENT_REMINDER
+  MAINTENANCE
+  EMERGENCY
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  password     String
+  role         UserRole
+  name         String
+  phone        String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  
+  house        House?         @relation("TenantHouse")
+  payments     Payment[]
+  complaints   Complaint[]
+  auditLogs    AuditLog[]
+  noticeReads  NoticeRead[]
+}
+
+model House {
+  id           String         @id @default(cuid())
+  name         String
+  address      String
+  type         HouseType
+  rent         Float
+  status       HouseStatus     @default(VACANT)
+  description  String
+  amenities    String[]
+  tenantId     String?         @unique
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  
+  tenant       User?           @relation("TenantHouse", fields: [tenantId], references: [id])
+  payments     Payment[]
+  complaints   Complaint[]
+}
+
+model Payment {
+  id           String         @id @default(cuid())
+  tenantId     String
+  houseId      String
+  amount       Float
+  date         DateTime
+  method       PaymentMethod
+  status       PaymentStatus   @default(PENDING)
+  month        DateTime
+  receiptNo    String          @unique
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  
+  tenant       User            @relation(fields: [tenantId], references: [id])
+  house        House           @relation(fields: [houseId], references: [id])
+}
+
+model Complaint {
+  id           String           @id @default(cuid())
+  tenantId     String
+  houseId      String
+  title        String
+  description  String
+  category     ComplaintCategory
+  status       ComplaintStatus  @default(OPEN)
+  priority     ComplaintPriority
+  createdAt    DateTime         @default(now())
+  resolvedAt   DateTime?
+  updatedAt    DateTime         @updatedAt
+  
+  tenant       User             @relation(fields: [tenantId], references: [id])
+  house        House            @relation(fields: [houseId], references: [id])
+}
+
+model Notice {
+  id           String         @id @default(cuid())
+  title        String
+  message      String
+  type         NoticeType
+  targetAll    Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  
+  reads        NoticeRead[]
+}
+
+model NoticeRead {
+  id           String         @id @default(cuid())
+  noticeId     String
+  tenantId     String
+  readAt       DateTime       @default(now())
+  
+  notice       Notice         @relation(fields: [noticeId], references: [id])
+  tenant       User           @relation(fields: [tenantId], references: [id])
+  
+  @@unique([noticeId, tenantId])
+}
+
+model AuditLog {
+  id           String         @id @default(cuid())
+  userId       String
+  action       String
+  entity       String
+  entityId     String
+  oldValue     Json?
+  newValue     Json?
+  ip           String
+  userAgent    String
+  createdAt    DateTime       @default(now())
+  
+  user         User           @relation(fields: [userId], references: [id])
+}
