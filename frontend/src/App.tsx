@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { User } from "./src/types";
+import { User } from "../src/types";
 import AuthPage from "./pages/AuthPage";
 import VerifyReceipt from "./pages/VerifyReceipt";
 import Dashboard from "./pages/landlord/Dashboard";
